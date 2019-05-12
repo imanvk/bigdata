@@ -1,0 +1,30 @@
+import org.apache.spark.SparkContext
+import org.apache.spark.SparkContext._
+import org.apache.spark.SparkConf
+
+object SimpleApp {
+  def main(args: Array[String]) {
+    //val logFile = "/home/iman/Desktop/dataset/tweets.txt" // Should be some file on your system
+//    val logFile = "/home/iman/Desktop/spark-2.4.1-bin-hadoop2.7/README.md"
+val logFile = args(0) 
+val conf = new SparkConf().setAppName("Simple Application")
+val sc = new SparkContext(conf)
+val f = sc.textFile(logFile, 2).cache()
+
+val wc = f.flatMap(l => l.split(" "))
+
+val xxx = wc.filter ( p => p.matches("@[a-zA-Z0-9]+") ) 
+
+val nah = xxx.map(word => (word,1)).reduceByKey(_ + _)
+
+val wc_swap = nah.map(_.swap)
+
+val hifreq_words = wc_swap.sortByKey(false,1)
+
+val top20 = hifreq_words.take(20)
+
+val top20rdd = sc.parallelize(top20)
+top20rdd.saveAsTextFile("hifreq_top20")
+
+  }
+}
